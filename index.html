@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Ceniza 7: carrera sin fin por la caldera. Proyecto escolar hecho con HTML, CSS y JavaScript nativos.">
+  <title>CENIZA 7 — Carrera por la Caldera</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="game.js" defer></script>
+</head>
+<body data-mode="menu">
+  <main id="app" aria-label="Ceniza 7, juego de carrera sin fin">
+
+    <!-- El escenario del juego se dibuja entero en este canvas 2D. -->
+    <canvas id="game" aria-label="Pista de tres carriles con Runa, la mensajera de brasas"></canvas>
+
+    <!-- Capa de impacto que se anima al chocar con un obstáculo. -->
+    <div class="impact" id="impact" aria-hidden="true"></div>
+
+    <!-- HUD: solo visible mientras se corre o se está en pausa. -->
+    <header class="hud" id="hud">
+      <div class="hud-brand">
+        <span class="hud-spark" aria-hidden="true"></span>
+        <span>CENIZA<em>7</em></span>
+      </div>
+
+      <dl class="hud-stats">
+        <div class="hud-stat">
+          <dt>PUNTOS</dt>
+          <dd id="score">0</dd>
+        </div>
+        <div class="hud-stat">
+          <dt>DISTANCIA</dt>
+          <dd id="distance">0 m</dd>
+        </div>
+        <div class="hud-stat hud-stat--sparks">
+          <dt>CHISPAS</dt>
+          <dd><span class="spark-dot" aria-hidden="true"></span><span id="sparks">0</span></dd>
+        </div>
+      </dl>
+
+      <p class="hud-best">RÉCORD <strong id="hud-best">0</strong></p>
+    </header>
+
+    <aside class="speed" id="speed-panel" aria-label="Velocidad actual">
+      <div class="speed-head">
+        <span>VELOCIDAD</span>
+        <strong><span id="speed-value">0</span> km/h</strong>
+      </div>
+      <div class="speed-track" aria-hidden="true">
+        <div class="speed-fill" id="speed-fill"></div>
+      </div>
+    </aside>
+
+    <p class="pause-hint" aria-hidden="true">ESPACIO · pausa &nbsp;|&nbsp; ESC · menú</p>
+
+    <!-- MENÚ INICIAL -->
+    <section class="screen screen--menu" id="menu" aria-labelledby="game-title">
+      <div class="menu-wrap">
+        <div class="hero">
+          <p class="eyebrow"><span></span> CARRERA SIN FIN · CALDERA 7</p>
+          <h1 id="game-title">
+            <span class="title-main">CENIZA</span>
+            <span class="title-seven">7</span>
+          </h1>
+          <p class="tagline">Carrera por la Caldera</p>
+          <p class="lore">
+            La ciudad suspendida se está apagando. Runa, mensajera de brasas, corre por
+            <strong>la Vena</strong> con el último núcleo encendido. No mires atrás:
+            la marea de ceniza ya despertó.
+          </p>
+
+          <div class="menu-actions">
+            <button class="btn btn--primary" id="start-btn" type="button">
+              Comenzar carrera <span class="btn-key">ESPACIO</span>
+            </button>
+            <p class="best-chip">RÉCORD LOCAL <strong id="menu-best">0</strong></p>
+          </div>
+
+          <p class="sound-hint"><span class="key key--tiny">M</span> sonido &nbsp;·&nbsp; Juego de teclado</p>
+        </div>
+
+        <aside class="instructions" aria-labelledby="how-title">
+          <h2 id="how-title">Cómo correr</h2>
+
+          <ul class="key-list">
+            <li>
+              <span class="keys"><kbd>←</kbd><kbd>→</kbd></span>
+              <span><strong>Cambiar de carril</strong><small>Esquiva las columnas de basalto.</small></span>
+            </li>
+            <li>
+              <span class="keys"><kbd>↑</kbd></span>
+              <span><strong>Saltar</strong><small>Supera la chatarra baja.</small></span>
+            </li>
+            <li>
+              <span class="keys"><kbd>↓</kbd></span>
+              <span><strong>Deslizarse</strong><small>Pasa bajo las vigas colgantes.</small></span>
+            </li>
+            <li>
+              <span class="keys"><kbd>ESPACIO</kbd></span>
+              <span><strong>Iniciar · pausar</strong><small>Detén la carrera cuando lo necesites.</small></span>
+            </li>
+            <li>
+              <span class="keys"><kbd>R</kbd><kbd>ESC</kbd></span>
+              <span><strong>Reiniciar · menú</strong><small>Disponibles al terminar o en pausa.</small></span>
+            </li>
+          </ul>
+
+          <div class="legend">
+            <h3>Peligros de la Vena</h3>
+            <ul>
+              <li><i class="ico ico--low" aria-hidden="true"></i><span><strong>Chatarra</strong><small>↑ saltar</small></span></li>
+              <li><i class="ico ico--beam" aria-hidden="true"></i><span><strong>Viga</strong><small>↓ deslizarse</small></span></li>
+              <li><i class="ico ico--block" aria-hidden="true"></i><span><strong>Basalto</strong><small>← → carril</small></span></li>
+            </ul>
+          </div>
+
+          <p class="collect-note"><span class="spark-dot" aria-hidden="true"></span> Recoge chispas y núcleos para sumar puntos.</p>
+        </aside>
+      </div>
+
+      <footer class="menu-foot">
+        Proyecto escolar original · Inspirado en mecánicas generales del género <em>endless runner</em>
+      </footer>
+    </section>
+
+    <!-- PAUSA -->
+    <section class="screen screen--center" id="pause" aria-labelledby="pause-title" hidden>
+      <div class="panel panel--small">
+        <p class="eyebrow"><span></span> RUTA EN ESPERA</p>
+        <h2 id="pause-title">Pausa</h2>
+        <p class="panel-copy">La caldera sigue rugiendo, pero el tiempo se detuvo.</p>
+        <button class="btn btn--primary" id="resume-btn" type="button">
+          Reanudar <span class="btn-key">ESPACIO</span>
+        </button>
+        <p class="mini">R reinicia · ESC vuelve al menú · M activa el sonido</p>
+      </div>
+    </section>
+
+    <!-- FIN DE PARTIDA -->
+    <section class="screen screen--center" id="gameover" aria-labelledby="over-title" hidden>
+      <div class="panel panel--result">
+        <p class="eyebrow eyebrow--danger"><span></span> LA MAREA DE CENIZA TE ALCANZÓ</p>
+        <h2 id="over-title">Fin de la carrera</h2>
+
+        <div class="final-score">
+          <span>PUNTOS</span>
+          <strong id="final-score">0</strong>
+        </div>
+
+        <dl class="result-grid">
+          <div><dt>DISTANCIA</dt><dd id="final-distance">0 m</dd></div>
+          <div><dt>CHISPAS</dt><dd id="final-sparks">0</dd></div>
+          <div><dt>NÚCLEOS</dt><dd id="final-cores">0</dd></div>
+          <div><dt>RÉCORD</dt><dd id="final-best">0</dd></div>
+        </dl>
+
+        <p class="new-record" id="new-record" hidden>✦ NUEVO RÉCORD PERSONAL ✦</p>
+
+        <div class="over-actions">
+          <button class="btn btn--primary" id="retry-btn" type="button">
+            Correr otra vez <span class="btn-key">R</span>
+          </button>
+          <button class="btn btn--ghost" id="menu-btn" type="button">
+            Menú <span class="btn-key">ESC</span>
+          </button>
+        </div>
+
+        <p class="mini">Consejo: un núcleo azul vale cinco chispas.</p>
+      </div>
+    </section>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  </main>
+</body>
+</html>
